@@ -9,10 +9,10 @@ class ProductSerializer(serializers.ModelSerializer):
 class StockProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockProduct
-        fields = '__all__'
+        exclude = ['stock']
 
 class StockSerializer(serializers.ModelSerializer):
-    positions = StockProductSerializer(many=True, read_only=True)
+    positions = StockProductSerializer(many=True)
 
     class Meta:
         model = Stock
@@ -30,6 +30,10 @@ class StockSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         positions_data = validated_data.pop('positions', [])
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
 
         StockProduct.objects.filter(stock=instance).delete()
 
